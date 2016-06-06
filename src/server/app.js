@@ -1,32 +1,36 @@
-'use strict';
-
 /**********************************************************
 *                      Load Modules                      *
 **********************************************************/
 
-var express = require('express')
-,   path = require('path')
-,   fs = require('fs');
+import path from 'path';
+import fs from 'fs';
 
-var favicon = require('serve-favicon')
-,   logger = require('morgan')
-,   cookieParser = require('cookie-parser')
-,   bodyParser = require('body-parser')
-,   compress = require('compression')
-,   cors = require('cors');
+import express from 'express';
+import webpack from 'webpack';
+import config from '../../webpack.config.dev';
+import favicon from 'serve-favicon';
+import logger from 'morgan';
+import cookieParser from 'cookie-parser';
+import bodyParser from 'body-parser';
+import compress from 'compression';
+import cors from 'cors';
+import mongoose from 'mongoose';
 
-var app = express()
-,   routes;
+import './models/index'; //import all models
 
-var environment = process.env.NODE_ENV
+const app = express();
+
+const environment = process.env.NODE_ENV
 ,   port = process.env.PORT || 3007;
+
+let routes = null;
 
 /**********************************************************
 * Connect MongoDB, Bootstrap models and Config passport  *
 **********************************************************/
 
-var db_url = process.env.MONGODB_DB_URL || 'mongodb://127.0.0.1:27017/epfl-wiki';
-require("mongoose").connect(db_url, function (err) {
+const db_url = process.env.MONGODB_DB_URL || 'mongodb://127.0.0.1:27017/epfl-wiki';
+mongoose.connect(db_url, function (err) {
 if (err) {
   console.log(err, err.stack);
 } else {
@@ -34,15 +38,18 @@ if (err) {
 }
 });
 
-//get all models
-var modelsPath = path.join(__dirname, "models");
-fs.readdirSync(modelsPath).forEach(function(file) {
-require(modelsPath + "/" + file);
-});
-
 /**********************************************************
 *                     Configuration                      *
 **********************************************************/
+
+const compiler = webpack(config);
+
+app.use(require('webpack-dev-middleware')(compiler, {
+  noInfo: true,
+  publicPath: config.output.publicPath
+}));
+
+app.use(require('webpack-hot-middleware')(compiler));
 
 
 app.use(favicon(__dirname + '/favicon.ico'));

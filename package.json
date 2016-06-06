@@ -3,7 +3,12 @@
   "version": "1.0.0",
   "description": "epfl-wiki",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "start": "npm-run-all --parallel open:src lint:watch",
+    "open:src": "babel-node src/server/app.js",
+    "lint": "node_modules/.bin/esw webpack.config.* src",
+    "lint:watch": "npm run lint -- --watch"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/lssslhs/epfl-wiki.git"
